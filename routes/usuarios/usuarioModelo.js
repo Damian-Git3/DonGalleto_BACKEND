@@ -1,16 +1,13 @@
+const bcrypt = require('bcryptjs');
+
 class Usuario {
     
-    constructor({id, usuario, contrasenia, estatus}) {
+    constructor({id=null, usuario, contrasena, estatus=1}) {
         this.id = id;
         this.usuario = usuario;
-        this.contrasenia = contrasenia;
+        this.contrasena = contrasena;
         this.estatus = estatus
 
-    }
-
-    constructor ({usuario, contrasenia}) {
-        this.usuario = usuario;
-        this.contrasenia = contrasenia;
     }
 
     // Getters
@@ -22,12 +19,12 @@ class Usuario {
         return this.usuario;
     }
 
-    getContrasenia() {
-        return this.contrasenia;
+    getContrasena() {
+        return this.contrasena;
     }
 
     getEstatus(){
-        return this.contrasenia;
+        return this.estatus;
     }
 
     // Setters
@@ -40,12 +37,25 @@ class Usuario {
         this.usuario = usuario;
     }
 
-    setContrasenia(contrasenia) {
-        this.contrasenia = contrasenia;
+    setContrasena(contrasena) {
+        this.contrasenia = contrasena;
     }
 
     setEstatus(estatus){
         this.estatus = estatus;
     }
 
+    // Métodos
+
+    async encryptPassword() {
+        const salt = bcrypt.genSaltSync(10);
+        this.contrasena = await bcrypt.hash(this.contrasena, salt);
+    }
+
+    validatePassword(contrasena) {
+        return bcrypt.compare(contrasena, this.contrasena);
+    }
+
 }
+
+module.exports = Usuario;
