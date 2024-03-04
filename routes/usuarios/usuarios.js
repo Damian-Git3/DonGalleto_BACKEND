@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const logger = require("../../utils/logger");
 const UsuarioDao = require("../usuarios/usuarioDao");
 const Usuario = require("../usuarios/usuarioModelo");
@@ -7,28 +8,37 @@ const Usuario = require("../usuarios/usuarioModelo");
 const jwt = require("jsonwebtoken");
 const verifyToken = require("../../middleware/verifyToken");
 
+const pwnedpasswords = require("pwnedpasswords");
+
 router.post("/login", async function (req, res) {
   try {
-
     logger.debug(req.body);
 
     const usuario = new Usuario(req.body);
 
-    const resultado = await UsuarioDao.validarUsuario(usuario)
-    if(!resultado){
+    const resultado = await UsuarioDao.validarUsuario(usuario);
+    if (!resultado) {
       res.status(400).send({ success: false, message: "No existe el usuario" });
       return;
     }
     let usuarioEncontrado = new Usuario(resultado);
-    
-    if (await usuarioEncontrado.validatePassword(usuario.contrasena) === false){
+
+    if (
+      (await usuarioEncontrado.validatePassword(usuario.contrasena)) === false
+    ) {
       res
         .status(400)
         .send({ success: false, message: "Usuario o Contraseña Incorrectos" });
       return;
     }
-    const token = jwt.sign({ id: usuarioEncontrado.id }, process.env.SECRET_KEY, { expiresIn: 60 * 3}); 
-    res.status(200).send({ success: true, message: "Usuario Autenticado", token: token });
+    const token = jwt.sign(
+      { id: usuarioEncontrado.id },
+      process.env.SECRET_KEY,
+      { expiresIn: 60 * 3 }
+    );
+    res
+      .status(200)
+      .send({ success: true, message: "Usuario Autenticado", token: token });
   } catch (error) {
     logger.error(`Error en login: ${error}`);
     console.log(error);
@@ -38,17 +48,31 @@ router.post("/login", async function (req, res) {
 
 router.post("/registro", async function (req, res) {
   try {
-    const usuario = new Usuario(req.body);
+    pwnedpasswords(req.body.contrasena).then(async (count) => {
+      if (count > 0) {
+        res
+          .status(400)
+          .send({
+            success: false,
+            message:
+              "Contraseña comprometida " +
+              count +
+              " veces. Por favor, elige una contraseña más segura.",
+          });
+      } else {
+        const usuario = new Usuario(req.body);
 
-    await usuario.encryptPassword();
-    
-    let result = await UsuarioDao.registrarUsuario(usuario);
-    //El token expira en 3 minutos, tiempo representado en segundos
-    
-    const token = jwt.sign({ id: result.id }, process.env.SECRET_KEY, {
-      expiresIn: 60 * 3,
+        await usuario.encryptPassword();
+
+        let result = await UsuarioDao.registrarUsuario(usuario);
+        //El token expira en 3 minutos, tiempo representado en segundos
+
+        const token = jwt.sign({ id: result.id }, process.env.SECRET_KEY, {
+          expiresIn: 60 * 3,
+        });
+        res.status(200).send({ succes: true, token: token });
+      }
     });
-    res.status(200).send({ succes: true, token: token });
   } catch (error) {
     console.log(error);
     res.status(404).send({ success: false, error });
@@ -75,9 +99,6 @@ router.get("/buscar", verifyToken, async function (req, res) {
 
 router.put("/actualizar", verifyToken, async function (req, res) {
   try {
-
-
-
     let result = await UsuarioDao.actualizarUsuario(req.body.usuario);
     res.status(200).send({ success: true, message: result });
   } catch (error) {
