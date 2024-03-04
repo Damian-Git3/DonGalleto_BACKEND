@@ -4,22 +4,28 @@ const logger = require('../../utils/logger');
 class UsuarioDao {
     async validarUsuario (usuario){
         try {
-            const query = `SELECT usuario, contrasena FROM usuarios WHERE usuario = :usuario AND contrasena = :contrasena limit 1;`;
+            const query = `SELECT id,usuario, contrasena, estatus FROM usuarios WHERE usuario = :usuario limit 1;`;
             let [response] = await db.query(query, usuario);
             logger.debug(response);
             return response[0];
         } catch (error) {
-            throw new MySqlError('error: getUserById')
+            throw 'error: No se pudo validar el usuario';
         }
     }
     
     // Función para crear un nuevo usuario
-    async saveUser(usuario) {
+    async registrarUsuario(usuario) {
         try {
-            const query = 'CALL guardar_usuario(:idUsuario, :usuario, :contrasena, :estatus);';
-            return await db.query(query, usuario);
+            console.log(usuario);
+            const query = 'CALL guardar_usuario(:id, :usuario, :contrasena, :estatus);';
+            const [rows] = await db.query(query, usuario);
+            const newUserId = rows[0][0].id; // Asume que el procedimiento almacenado devuelve el nuevo ID en la primera fila
+            return { ...usuario, id: newUserId }; // Devuelve el objeto usuario con el nuevo ID
         } catch (error) {
-            throw new MySqlError('error: createUser', error.message, error.code,);
+            if (error.code === 'ER_DUP_ENTRY') {
+                throw 'error: El nombre de usuario ya existe';
+            }
+            throw "error: No fue posible realizar la insercion";
         }
     }
 
