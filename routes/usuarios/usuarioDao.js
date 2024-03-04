@@ -4,7 +4,7 @@ const logger = require('../../utils/logger');
 class UsuarioDao {
     async validarUsuario (usuario){
         try {
-            const query = `SELECT usuario, contrasena FROM usuarios WHERE usuario = :usuario AND contrasena = :contrasena`;
+            const query = `SELECT usuario, contrasena FROM usuarios WHERE usuario = :usuario AND contrasena = :contrasena limit 1;`;
             let [response] = await db.query(query, usuario);
             logger.debug(response);
             return response[0];
