@@ -1,25 +1,31 @@
 const db = require('../../utils/bd'); // Asegúrate de tener un módulo de base de datos configurado
 
 class UsuarioDao {
-    // Función para crear un nuevo usuario
-    async createUser(usuario) {
+    async validarUsuario(usuario){
         try {
-            const query = 'INSERT INTO usuarios (usuario, contrasenia) VALUES (:usuario, :contrasenia)';
-            const params = {
-                nombre: usuario.getNombre(),
-                contrasenia: usuario.getContrasenia()
-            };
-            return db.query(query, params);
+            const query = `SELECT usuario, contrasena FROM usuarios WHERE usuario = :usuario AND contrasena = :contrasena`;
+            return db.query(query, usuario);
+        } catch (error) {
+            throw new MySqlError('error: getUserById')
+        }
+    }
+    
+    
+    // Función para crear un nuevo usuario
+    async saveUser(usuario) {
+        try {
+            const query = 'CALL guardar_usuario(:idUsuario, :usuario, :contrasena, :estatus);';
+            return db.query(query, usuario);
         } catch (error) {
             throw new MySqlError('error: createUser', error.message, error.code,);
         }
     }
 
     // Función para obtener un usuario por ID
-    async getUserById(id_usuario) {
+    async getUserById(idUsuario) {
         try {
-            const query = 'SELECT * FROM usuarios WHERE id = :id_usuario';
-            const params = { id_usuario };
+            const query = 'SELECT * FROM usuarios WHERE id = :idUsuario';
+            const params = { idUsuario };
             return db.query(query, params);
         } catch (error) {
             throw new MySqlError('error: getUserById', error.message, error.code,);
@@ -30,35 +36,17 @@ class UsuarioDao {
     async getUserByUsername(usuario) {
         try {
             const query = 'SELECT * FROM usuarios WHERE usuario = :usuario';
-            const params = { usuario };
-            return db.query(query, params);
+            return db.query(query, usuario);
         } catch (error) {
             throw new MySqlError('error: getUserByUsername', error.message, error.code,);
         }
     }
 
-    // Función para actualizar un usuario
-    async updateUser(id_usuario, usuario) {
-        try {
-            const query = 'UPDATE usuarios SET usuario = ?, contrasenia = ? WHERE id = ?';
-            const params = {
-                id_usuario,
-                nombre: usuario.getNombre(),
-                contrasenia: usuario.getContrasenia()
-
-            };
-            return db.query(query, params);
-        } catch (error) {
-            throw new MySqlError('error: updateUser', error.message, error.code,);
-        }
-    }
-
     // Función para eliminar un usuario
-    async deleteUser(id_usuario) {
+    async deleteUser(idUsuario) {
         try {
-            const query = 'DELETE FROM usuarios WHERE id = ?';
-            const params = {id_usuario};
-            return db.query(query, params);
+            const query = 'DELETE FROM usuarios WHERE id = :idUsuario';
+            return db.query(query, idUsuario);
         } catch (error) {
             throw new MySqlError('error: updateUser', error.message, error.code,);
         }

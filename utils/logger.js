@@ -41,7 +41,6 @@ const logger = winston.createLogger({
         new winston.transports.DailyRotateFile({
             filename: 'logs/%DATE%/donGalleto_general.log',
             datePattern: 'MM-YYYY',
-
             maxFiles: 14
         })
     ],

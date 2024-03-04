@@ -1,9 +1,10 @@
 class Usuario {
     
-    constructor({id, usuario, contrasenia}) {
+    constructor({id, usuario, contrasenia, estatus}) {
         this.id = id;
         this.usuario = usuario;
         this.contrasenia = contrasenia;
+        this.estatus = estatus
 
     }
 
@@ -17,11 +18,15 @@ class Usuario {
         return this.id;
     }
 
-    getNombre() {
+    getUsuario() {
         return this.usuario;
     }
 
     getContrasenia() {
+        return this.contrasenia;
+    }
+
+    getEstatus(){
         return this.contrasenia;
     }
 
@@ -31,12 +36,16 @@ class Usuario {
         this.id = id;
     }
 
-    setNombre(usuario) {
+    setUsuario(usuario) {
         this.usuario = usuario;
     }
 
     setContrasenia(contrasenia) {
         this.contrasenia = contrasenia;
+    }
+
+    setEstatus(estatus){
+        this.estatus = estatus;
     }
 
 }

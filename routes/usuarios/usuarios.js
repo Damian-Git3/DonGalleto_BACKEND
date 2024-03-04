@@ -1,43 +1,63 @@
 let express = require('express');
 let router = express.Router();
-//const connection = require('../utils/bd');
+let usuarioController = require('../usuarios/usuarios');
 
-router.post('/login', function (req, res) {
-  let username = req.body.username;
-  let password = req.body.password;
+router.post('/login', async function (req, res) {
 
-  let contrasena = '1234';
-  let usuario = 'admin';
+  let usuario = req.body.usuario;
 
-  if (username === usuario && password === contrasena) {
-    res.status(200).json({ success: true });
-  } else {
-    res.status(401).json({ success: false });
-  }
-
-  // Aquí debes implementar la lógica para validar la contraseña, por ejemplo, compararla con un hash
-  // Por ahora, asumiremos que la contraseña se almacena en texto plano (no recomendado)
   try {
-    // connection.query('SELECT * FROM usuarios WHERE username = ? AND password = ?', [username, password], function (error, results, fields) {
-    //   if (error) {
-    //     console.error('Error al ejecutar la consulta: ', error);
-    //     res.status(500).send('Error interno del servidor');
-    //     return;
-    //   }
-
-    //   if (results.length > 0) {
-    //     // Usuario y contraseña correctos
-    //     res.status(200).json({ success: true });
-    //   } else {
-    //     // Usuario o contraseña incorrectos
-    //     res.status(401).json({ success: false });
-    //   }
-    // });
+    let result = await usuarioController.validarUsuario(usuario);
+    res.status(200).send({succes: true, message: result});
   } catch (error) {
-    console.error('Error al procesar la solicitud: ', error);
-    res.status(500).send({ message: 'Error interno del servidor' });
+    res.status(404).send({success: false, error: error});
   }
 
+});
+
+router.post('/registro', function (req, res) {
+  try {
+    let result = usuarioController.registrarUsuario(req.body.usuario);
+    res.status(200).send({ succes: true, message: result });
+  } catch (error) {
+    res.status(404).send({ success: false, error: error });
+  }
+});
+
+router.get('/listar', async function (req, res) {
+  try {
+    let result = await usuarioController.listarUsuarios();
+    res.status(200).send({ succes: true, message: result });
+  } catch (error) {
+    res.status(404).send({ success: false, error: error });
+  }
+});
+
+router.get('/buscar', async function (req, res) {
+  try {
+    let result = await usuarioController.buscarUsuario(req.body.id);
+    res.status(200).send({ succes: true, message: result });
+  } catch (error) {
+    res.status(404).send({ success: false, error: error });
+  }
+});
+
+router.put('/actualizar', async function (req, res) {
+  try {
+    let result = await usuarioController.actualizarUsuario(req.body.usuario);
+    res.status(200).send({ succes: true, message: result });
+  } catch (error) {
+    res.status(404).send({ success: false, error: error });
+  }
+});
+
+router.delete('/eliminar', async function (req, res) {
+  try {
+    let result = await usuarioController.eliminarUsuario(req.body.id);
+    res.status(200).send({ succes: true, message: result });
+  } catch (error) {
+    res.status(404).send({ success: false, error: error });
+  }
 });
 
 module.exports = router;
