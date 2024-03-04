@@ -16,6 +16,24 @@ router.post('/login', async function (req, res) {
     }
 
     res.status(200).send({ success: true, message: 'Usuario Autenticado' });
+    let usuarioEncontrado = new Usuario(resultado);
+
+    if (
+      (await usuarioEncontrado.validatePassword(usuario.contrasena)) === false
+    ) {
+      res
+      .status(400)
+      .send({ success: false, message: "Usuario o Contraseña Incorrectos" });
+      return;
+    }
+    const token = jwt.sign(
+      { id: usuarioEncontrado.id },
+      process.env.SECRET_KEY,
+      { expiresIn: 60 * 3 }
+    );
+    res
+      .status(200)
+      .send({ success: true, message: "Usuario Autenticado", token: token });
   } catch (error) {
     logger.error(`Error en login: ${error}`);
     res.status(404).send({ success: false, error: error });
