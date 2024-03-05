@@ -1,5 +1,4 @@
 const express = require("express");
-const session = require('express-session');
 const router = express.Router();
 
 const logger = require("../../utils/logger");
@@ -37,37 +36,11 @@ router.post("/login", async function (req, res) {
       process.env.SECRET_KEY,
       { expiresIn: 60 * 3 }
     );
-
-    res.cookie('sessionToken', token, {
-      httpOnly: true, // Asegura que la cookie no sea accesible a través de JavaScript
-      secure: true, // Asegura que la cookie solo se envíe a través de HTTPS
-      sameSite: 'strict', // Asegura que la cookie solo se envíe en solicitudes del mismo sitio
-      maxAge: 86400000 // Duración de la cookie en milisegundos (1 día en este caso)
-   });
-
     res
       .status(200)
       .send({ success: true, message: "Usuario Autenticado", token: token });
 
     res.status(200).send({ success: true, message: 'Usuario Autenticado' });
-    let usuarioEncontrado = new Usuario(resultado);
-
-    if (
-      (await usuarioEncontrado.validatePassword(usuario.contrasena)) === false
-    ) {
-      res
-      .status(400)
-      .send({ success: false, message: "Usuario o Contraseña Incorrectos" });
-      return;
-    }
-    const token = jwt.sign(
-      { id: usuarioEncontrado.id },
-      process.env.SECRET_KEY,
-      { expiresIn: 60 * 3 }
-    );
-    res
-      .status(200)
-      .send({ success: true, message: "Usuario Autenticado", token: token });
   } catch (error) {
     logger.error(`Error en login: ${error}`);
     console.log(error);
