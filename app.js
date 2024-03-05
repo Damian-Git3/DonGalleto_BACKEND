@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('./utils/logger');
 const winston = require('winston');
 const morgan = require('morgan');
+const session = require('express-session');
 const cors = require('cors');
 const indexRouter = require('./routes/index');
 
@@ -26,6 +27,14 @@ app.use(morgan(
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
+
+app.use(session({
+  secret: process.env.SECRET_KEY,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true } // Asegúrate de que tu aplicación esté en HTTPS
+ }));
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors(corsOptions));
 app.use('/', indexRouter);
