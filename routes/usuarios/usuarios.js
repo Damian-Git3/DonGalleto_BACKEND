@@ -90,7 +90,7 @@ router.post("/registro", async function (req, res) {
         const token = jwt.sign({ id: result.id }, process.env.SECRET_KEY, {
           expiresIn: 60 * 3,
         });
-        res.status(200).send({ succes: true, token: token });
+        res.status(200).send({ success: true, token: token });
       }
     });
   } catch (error) {
