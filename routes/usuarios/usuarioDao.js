@@ -41,6 +41,20 @@ class UsuarioDao {
         }
     }
 
+    async getUsers() {
+        try {
+            const query = 'SELECT * FROM usuarios';
+             
+            const res = await db.query(query);
+            
+            return res[0]
+        }
+        catch (error) {
+            console.log(error);
+            throw new MySqlError('error: getUsers', error.message, error.code,);
+        }
+    }
+
     // Función para obtener un usuario por nombre de usuario
     async getUserByUsername(usuario) {
         try {
@@ -54,10 +68,11 @@ class UsuarioDao {
     // Función para eliminar un usuario
     async deleteUser(idUsuario) {
         try {
-            const query = 'DELETE FROM usuarios WHERE id = :idUsuario';
-            return await db.query(query, idUsuario);
+            const query = 'UPDATE usuarios SET estatus = 0 WHERE id = '+idUsuario;
+            return await db.query(query);
         } catch (error) {
-            throw new MySqlError('error: updateUser', error.message, error.code,);
+            console.log(error);
+            throw "error: No fue posible borrar el usuario";
         }
     }
 }
