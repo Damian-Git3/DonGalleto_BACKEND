@@ -54,6 +54,8 @@ router.post("/login", async function (req, res) {
         id: usuarioEncontrado.id,
         nombre: usuarioEncontrado.usuario,
       });
+
+
   } catch (error) {
     logger.error(`Error en login: ${error}`);
     console.log(error);
