@@ -11,14 +11,28 @@ const morgan = require('morgan');
 const session = require('express-session');
 const cors = require('cors');
 const indexRouter = require('./routes/index');
+const csrf = require('csurf');
 
 const app = express();
 
-// Configuración de CORS para permitir solo direcciones IP específicas
-const corsOptions = {
-  origin: ['http://127.0.0.1:5500'],
-  optionsSuccessStatus: 200
-};
+var csrfProtection = csrf({ cookie: true })
+
+app.use(cookieParser());
+
+app.get('/csrf-token', csrfProtection, function (req, res) {
+  res.json({ csrfToken: req.csrfToken() })
+})
+
+app.use(session({
+  secret: process.env.SECRET_KEY,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24
+  }
+}));
 
 app.use(morgan(
   ':method :remote-addr :url :status :res[content-length] - :response-time ms',
@@ -26,16 +40,15 @@ app.use(morgan(
 ));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(cookieParser());
-
-app.use(session({
-  secret: process.env.SECRET_KEY,
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true } // Asegúrate de que tu aplicación esté en HTTPS
- }));
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Configuración de CORS para permitir solo direcciones IP específicas
+const corsOptions = {
+  origin: ['http://127.0.0.1:5500'],
+  optionsSuccessStatus: 200
+};
+
 app.use(cors(corsOptions));
 app.use('/', indexRouter);
 
