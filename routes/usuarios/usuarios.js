@@ -1,5 +1,4 @@
 const express = require("express");
-const session = require('express-session');
 const router = express.Router();
 
 const logger = require("../../utils/logger");
@@ -41,6 +40,7 @@ router.post("/login", async function (req, res) {
     res
       .status(200)
       .send({ success: true, message: "Usuario Autenticado", token: token, admin: usuarioEncontrado.rol, id: usuarioEncontrado.id, nombre: usuarioEncontrado.usuario});
+
   } catch (error) {
     logger.error(`Error en login: ${error}`);
     console.log(error);
