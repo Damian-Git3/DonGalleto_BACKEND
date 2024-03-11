@@ -9,7 +9,7 @@ class UsuarioDao {
             logger.debug(response);
             return response[0];
         } catch (error) {
-            throw 'error: No se pudo validar el usuario';
+            throw new MySqlError('error: No se pudo validar el usuario');
         }
     }
     
@@ -23,9 +23,9 @@ class UsuarioDao {
             return { ...usuario, id: newUserId }; // Devuelve el objeto usuario con el nuevo ID
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY') {
-                throw 'error: El nombre de usuario ya existe';
+                throw new MySqlError('error: El nombre de usuario ya existe');
             }
-            throw "error: No fue posible realizar la insercion";
+            throw new MySqlError("error: No fue posible realizar la insercion");
         }
     }
 
@@ -57,6 +57,24 @@ class UsuarioDao {
             return await db.query(query, idUsuario);
         } catch (error) {
             throw new MySqlError('error: updateUser', error.message, error.code,);
+        }
+    }
+
+    async listarUsuarios() {
+        try {
+            const query = `SELECT * FROM UsuariosFull`
+            return await db.query(query, {});
+        } catch (error) {
+            throw new MySqlError('error: listarUsuarios', error.message, error.code,);
+        }
+    }
+
+    async listarUsuariosActivos() {
+        try {
+            const query = 'SELECT * FROM UsuariosActivos'
+            return await db.query(query, {});
+        } catch (error) {
+            throw new MySqlError('error: listarUsuariosActivos', error.message, error.code)
         }
     }
 }
