@@ -52,6 +52,20 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use('/', indexRouter);
 
+app.use(function (req, res, next) {
+  const currentHour = new Date().getHours();
+
+  if (currentHour >= 17) {
+    const errorMessage = "Horario inválido. No se permite el acceso después de las 5 PM.";
+    return res.status(403).json({
+      estatus: -1,
+      respuesta: errorMessage
+    });
+  }
+
+  next();
+});
+
 // Capturar error  404 y reenviar al manejador de errores
 app.use(function(req, res, next) {
   next(createError(404));
