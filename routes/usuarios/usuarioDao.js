@@ -4,7 +4,7 @@ const logger = require('../../utils/logger');
 class UsuarioDao {
     async validarUsuario (usuario){
         try {
-            const query = `SELECT id,usuario, contrasena, estatus FROM usuarios WHERE BINARY usuario = :usuario limit 1;`;
+            const query = `SELECT id,usuario, contrasena, estatus, rol FROM usuarios WHERE BINARY usuario = :usuario limit 1;`;
             let [response] = await db.query(query, usuario);
             logger.debug(response);
             return response[0];
@@ -16,8 +16,9 @@ class UsuarioDao {
     // Función para crear un nuevo usuario
     async registrarUsuario(usuario) {
         try {
-            console.log(usuario);
-            const query = 'CALL guardar_usuario(:id, :usuario, :contrasena, :estatus);';
+            
+            usuario.usuario_mod = null;
+            const query = 'CALL guardar_usuario(:id, :usuario, :contrasena, :usuario_mod, :rol);';
             const [rows] = await db.query(query, usuario);
             const newUserId = rows[0][0].id; // Asume que el procedimiento almacenado devuelve el nuevo ID en la primera fila
             return { ...usuario, id: newUserId }; // Devuelve el objeto usuario con el nuevo ID
