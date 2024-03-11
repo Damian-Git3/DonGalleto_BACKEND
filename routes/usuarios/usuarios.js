@@ -1,4 +1,5 @@
 const express = require("express");
+const session = require("express-session");
 const router = express.Router();
 
 const logger = require("../../utils/logger");
@@ -23,6 +24,12 @@ router.post("/login", async function (req, res) {
     }
     let usuarioEncontrado = new Usuario(resultado);
 
+    if (usuarioEncontrado.estatus != 1) {
+      res
+        .status(403)
+        .send({ success: false, message: "El usuario ha sido eliminado" });
+      return;
+    }
     if (
       (await usuarioEncontrado.validatePassword(usuario.contrasena)) === false
     ) {
@@ -36,9 +43,19 @@ router.post("/login", async function (req, res) {
       process.env.SECRET_KEY,
       { expiresIn: 60 * 3 }
     );
+
     res
       .status(200)
-      .send({ success: true, message: "Usuario Autenticado", token: token });
+      .send({
+        success: true,
+        message: "Usuario Autenticado",
+        token: token,
+        admin: usuarioEncontrado.rol,
+        id: usuarioEncontrado.id,
+        nombre: usuarioEncontrado.usuario,
+      });
+
+
   } catch (error) {
     logger.error(`Error en login: ${error}`);
     console.log(error);
@@ -49,19 +66,16 @@ router.post("/login", async function (req, res) {
 router.post("/registro", async function (req, res) {
   try {
     pwnedpasswords(req.body.contrasena).then(async (count) => {
-      if (count > 0) {
-        res
-          .status(400)
-          .send({
-            success: false,
-            message:
-              "Contraseña comprometida " +
-              count +
-              " veces. Por favor, elige una contraseña más segura.",
-          });
+      if (count > 17000) {
+        res.status(400).send({
+          success: false,
+          message:
+            "Contraseña comprometida " +
+            count +
+            " veces. Por favor, elige una contraseña más segura.",
+        });
       } else {
         const usuario = new Usuario(req.body);
-
         await usuario.encryptPassword();
 
         let result = await UsuarioDao.registrarUsuario(usuario);
@@ -70,7 +84,15 @@ router.post("/registro", async function (req, res) {
         const token = jwt.sign({ id: result.id }, process.env.SECRET_KEY, {
           expiresIn: 60 * 3,
         });
-        res.status(200).send({ success: true, token: token });
+        res
+          .status(200)
+          .send({
+            success: true,
+            token: token,
+            admin: result.rol,
+            id: result.id,
+            nombre: result.usuario,
+          });
       }
     });
   } catch (error) {
@@ -79,36 +101,42 @@ router.post("/registro", async function (req, res) {
   }
 });
 
-router.get("/listar", verifyToken, async function (req, res) {
+router.post("/lista", verifyToken, async function (req, res) {
   try {
-    let result = await UsuarioDao.listarUsuarios();
+    let result = await UsuarioDao.getUsers();
+    //transformar el nombre de los campos por seguridad
+
+    let data = result.map((usuario) => {
+      return {
+        id: usuario.id,
+        usuario: usuario.usuario,
+        estatus: usuario.estatus,
+        rol: usuario.rol,
+      };
+    });
+
+    res
+      .status(200)
+      .send({ success: true, message: "Lista concedida", data: data });
+  } catch (error) {
+    res.status(404).send({ success: false, error: error });
+  }
+});
+
+router.post("/eliminar", verifyToken, async function (req, res) {
+  try {
+    console.log(req.body.id);
+    let result = await UsuarioDao.deleteUser(req.body.id);
+    
     res.status(200).send({ success: true, message: result });
   } catch (error) {
     res.status(404).send({ success: false, error: error });
   }
 });
 
-router.get("/buscar", verifyToken, async function (req, res) {
-  try {
-    let result = await UsuarioDao.buscarUsuario(req.body.id);
-    res.status(200).send({ success: true, message: result });
-  } catch (error) {
-    res.status(404).send({ success: false, error: error });
-  }
-});
-
-router.put("/actualizar", verifyToken, async function (req, res) {
+router.put("/actualizar/contrasena", verifyToken, async function (req, res) {
   try {
     let result = await UsuarioDao.actualizarUsuario(req.body.usuario);
-    res.status(200).send({ success: true, message: result });
-  } catch (error) {
-    res.status(404).send({ success: false, error: error });
-  }
-});
-
-router.delete("/eliminar", verifyToken, async function (req, res) {
-  try {
-    let result = await UsuarioDao.eliminarUsuario(req.body.id);
     res.status(200).send({ success: true, message: result });
   } catch (error) {
     res.status(404).send({ success: false, error: error });

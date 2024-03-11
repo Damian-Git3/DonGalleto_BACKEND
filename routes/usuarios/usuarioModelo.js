@@ -1,61 +1,76 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
 
 class Usuario {
-    
-    constructor({id=null, usuario, contrasena, estatus=1}) {
-        this.id = id;
-        this.usuario = usuario;
-        this.contrasena = contrasena;
-        this.estatus = estatus
+  constructor({ id = null, usuario, contrasena, rol = 1, estatus = 1 }) {
+    this.id = id;
+    this.usuario = usuario;
+    this.contrasena = this.sanitizarContrasena(contrasena);
+    this.rol = rol;
+    this.estatus = estatus;
+  }
 
-    }
+  // Getters
+  getId() {
+    return this.id;
+  }
 
-    // Getters
-    getId() {
-        return this.id;
-    }
+  getUsuario() {
+    return this.usuario;
+  }
 
-    getUsuario() {
-        return this.usuario;
-    }
+  getContrasena() {
+    return this.contrasena;
+  }
 
-    getContrasena() {
-        return this.contrasena;
-    }
+  getEstatus() {
+    return this.estatus;
+  }
 
-    getEstatus(){
-        return this.estatus;
-    }
+  getRol() {
+    return this.rol;
+  }
 
-    // Setters
+  // Setters
 
-    setId(id) {
-        this.id = id;
-    }
+  setId(id) {
+    this.id = id;
+  }
 
-    setUsuario(usuario) {
-        this.usuario = usuario;
-    }
+  setUsuario(usuario) {
+    this.usuario = usuario;
+  }
 
-    setContrasena(contrasena) {
-        this.contrasenia = contrasena;
-    }
+  setContrasena(contrasena) {
+    this.contrasena = contrasena;
+  }
 
-    setEstatus(estatus){
-        this.estatus = estatus;
-    }
+  setEstatus(estatus) {
+    this.estatus = estatus;
+  }
 
-    // Métodos
+  setRol(rol) {
+    this.rol = rol;
+  }
 
-    async encryptPassword() {
-        const salt = bcrypt.genSaltSync(10);
-        this.contrasena = await bcrypt.hash(this.contrasena, salt);
-    }
+  // Métodos
 
-    validatePassword(contrasena) {
-        return bcrypt.compare(contrasena, this.contrasena);
-    }
+  async encryptPassword() {
+    const salt = bcrypt.genSaltSync(10);
+    this.contrasena = await bcrypt.hash(this.contrasena, salt);
+  }
 
+  validatePassword(contrasena) {
+    return bcrypt.compare(contrasena, this.contrasena);
+  }
+
+  sanitizarContrasena(contrasena) {
+    // Regex que coincide con caracteres especiales y espacios en blanco
+    const regex = /[`"'();,[\]{}<>\s]/g;
+
+    // Reemplazar los caracteres especiales y espacios en blanco por un caracter vacío
+    return contrasena.replace(regex, "");
+  }
 }
+
 
 module.exports = Usuario;
