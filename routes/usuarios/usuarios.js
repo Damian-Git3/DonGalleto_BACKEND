@@ -101,6 +101,23 @@ router.post("/registro", async function (req, res) {
   }
 });
 
+router.post("/editar", async function (req, res) {
+  try {
+    console.log(req.body);
+
+    let result = await UsuarioDao.updateUser(req.body.usuario, req.body.contrasena, req.body.rol, req.body.idUsuario, req.body.idUsuarioModificador)
+
+    res
+      .status(200)
+      .send({
+        success: true,
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(404).send({ success: false, error });
+  }
+});
+
 router.post("/lista", verifyToken, async function (req, res) {
   try {
     let result = await UsuarioDao.getUsers();
@@ -127,7 +144,7 @@ router.post("/eliminar", verifyToken, async function (req, res) {
   try {
     console.log(req.body.id);
     let result = await UsuarioDao.deleteUser(req.body.id);
-    
+
     res.status(200).send({ success: true, message: result });
   } catch (error) {
     res.status(404).send({ success: false, error: error });
@@ -146,6 +163,29 @@ router.put("/actualizar/contrasena", verifyToken, async function (req, res) {
 router.get("/test", verifyToken, async function (req, res) {
   try {
     res.status(200).send({ success: true, message: "Usuario Autenticado" });
+  } catch (error) {
+    res.status(404).send({ success: false, error });
+  }
+});
+
+router.get("/obtener", verifyToken, async function (req, res) {
+  try {
+    const userId = req.query.id; // Obtener el ID del parámetro de la consulta
+
+    let result = await UsuarioDao.getUserById(userId);
+
+    if (!result) {
+      return res.status(404).json({ success: false, message: "Usuario no encontrado" });
+    }
+
+    let data = {
+      id: result.id,
+      usuario: result.usuario,
+      estatus: result.estatus,
+      rol: result.rol,
+    };
+
+    res.status(200).json({ success: true, message: "Usuario obtenido", data: data });
   } catch (error) {
     res.status(404).send({ success: false, error });
   }

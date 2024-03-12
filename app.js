@@ -55,7 +55,7 @@ app.use('/', indexRouter);
 app.use(function (req, res, next) {
   const currentHour = new Date().getHours();
 
-  if (currentHour >= 17) {
+  if (currentHour >= 20) {
     const errorMessage = "Horario inválido. No se permite el acceso después de las 5 PM.";
     return res.status(403).json({
       estatus: -1,

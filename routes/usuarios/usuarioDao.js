@@ -2,7 +2,7 @@ const db = require('../../utils/bd'); // Asegúrate de tener un módulo de base 
 const logger = require('../../utils/logger');
 
 class UsuarioDao {
-    async validarUsuario (usuario){
+    async validarUsuario(usuario) {
         try {
             const query = `SELECT id,usuario, contrasena, estatus, rol FROM usuarios WHERE BINARY usuario = :usuario limit 1;`;
             let [response] = await db.query(query, usuario);
@@ -12,11 +12,11 @@ class UsuarioDao {
             throw 'error: No se pudo validar el usuario';
         }
     }
-    
+
     // Función para crear un nuevo usuario
     async registrarUsuario(usuario) {
         try {
-            
+
             usuario.usuario_mod = null;
             const query = 'CALL guardar_usuario(:id, :usuario, :contrasena, :usuario_mod, :rol);';
             const [rows] = await db.query(query, usuario);
@@ -33,20 +33,23 @@ class UsuarioDao {
     // Función para obtener un usuario por ID
     async getUserById(idUsuario) {
         try {
-            const query = 'SELECT * FROM usuarios WHERE id = :idUsuario';
-            const params = { idUsuario };
-            return await db.query(query, params);
+            const query = 'SELECT * FROM usuarios WHERE id = ?';
+            const result = await db.query(query, [idUsuario]);
+
+            // Devolver el primer resultado si existe
+            return result.length > 0 ? result[0] : null;
         } catch (error) {
-            throw new MySqlError('error: getUserById', error.message, error.code,);
+            throw new MySqlError('error: getUserById', error.message, error.code);
         }
     }
+
 
     async getUsers() {
         try {
             const query = 'SELECT * FROM usuarios';
-             
+
             const res = await db.query(query);
-            
+
             return res[0]
         }
         catch (error) {
@@ -68,11 +71,25 @@ class UsuarioDao {
     // Función para eliminar un usuario
     async deleteUser(idUsuario) {
         try {
-            const query = 'UPDATE usuarios SET estatus = 0 WHERE id = '+idUsuario;
+            const query = 'UPDATE usuarios SET estatus = 0 WHERE id = ' + idUsuario;
             return await db.query(query);
         } catch (error) {
             console.log(error);
             throw "error: No fue posible borrar el usuario";
+        }
+    }
+
+    async updateUser(usuario, contrasenia, rol, idUsuario, idUsuarioModificador) {
+        try {
+            const bcrypt = require("bcryptjs");
+            const salt = bcrypt.genSaltSync(10);
+            contrasenia = await bcrypt.hash(contrasenia, salt);
+            
+            const query = 'UPDATE usuarios SET usuario = "' + usuario + '", contrasena = "' + contrasenia + '", rol = ' + rol + ', usuario_mod = ' + idUsuarioModificador + ' WHERE id = ' + idUsuario;
+            return await db.query(query);
+        } catch (error) {
+            console.log(error);
+            throw "error: No fue posible editar el usuario";
         }
     }
 }
