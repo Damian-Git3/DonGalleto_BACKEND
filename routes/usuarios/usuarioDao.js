@@ -2,7 +2,7 @@ const db = require("../../utils/bd"); // Asegúrate de tener un módulo de base 
 const logger = require("../../utils/logger");
 
 class UsuarioDao {
-    async validarUsuario (usuario){
+    async validarUsuario(usuario) {
         try {
             const query = `SELECT id,usuario, contrasena, estatus, rol FROM usuarios WHERE BINARY usuario = :usuario limit 1;`;
             let [response] = await db.query(query, usuario);
@@ -12,11 +12,11 @@ class UsuarioDao {
             throw new Error('error: No se pudo validar el usuario');
         }
     }
-    
+
     // Función para crear un nuevo usuario
     async registrarUsuario(usuario) {
         try {
-            
+
             usuario.usuario_mod = null;
             const query = 'CALL guardar_usuario(:id, :usuario, :contrasena, :usuario_mod, :rol);';
             const [rows] = await db.query(query, usuario);
@@ -39,20 +39,23 @@ class UsuarioDao {
     // Función para obtener un usuario por ID
     async getUserById(idUsuario) {
         try {
-            const query = 'SELECT * FROM usuarios WHERE id = :idUsuario';
-            const params = { idUsuario };
-            return await db.query(query, params);
+            const query = 'SELECT * FROM usuarios WHERE id = ?';
+            const result = await db.query(query, [idUsuario]);
+
+            // Devolver el primer resultado si existe
+            return result.length > 0 ? result[0] : null;
         } catch (error) {
             throw new Error('error: getUserById', error.message, error.code,);
         }
     }
 
+
     async getUsers() {
         try {
             const query = 'SELECT * FROM usuarios';
-             
+
             const res = await db.query(query);
-            
+
             return res[0]
         }
         catch (error) {
