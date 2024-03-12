@@ -1,5 +1,5 @@
-const db = require('../../utils/bd'); // Asegúrate de tener un módulo de base de datos configurado
-const logger = require('../../utils/logger');
+const db = require("../../utils/bd"); // Asegúrate de tener un módulo de base de datos configurado
+const logger = require("../../utils/logger");
 
 class UsuarioDao {
     async validarUsuario (usuario){
@@ -71,16 +71,16 @@ class UsuarioDao {
         }
     }
 
-    // Función para eliminar un usuario
-    async deleteUser(idUsuario) {
-        try {
-            const query = 'UPDATE usuarios SET estatus = 0 WHERE id = '+idUsuario;
-            return await db.query(query);
-        } catch (error) {
-            console.log(error);
-            throw "error: No fue posible borrar el usuario";
-        }
+  // Función para eliminar un usuario
+  async deleteUser(idUsuario) {
+    try {
+      const query = "UPDATE usuarios SET estatus = 0 WHERE id = " + idUsuario;
+      return await db.query(query);
+    } catch (error) {
+      console.log(error);
+      throw "error: No fue posible borrar el usuario";
     }
+  }
 
     async listarUsuarios() {
         try {
@@ -99,6 +99,19 @@ class UsuarioDao {
             throw new Error('error: listarUsuariosActivos', error.message, error.code)
         }
     }
+
+  async updateUserData(data) {
+    try {
+        
+      const query =
+        "UPDATE usuarios SET usuario = :nuevo_usuario, contrasena = :contrasena, usuario_mod = :id WHERE id = :id";
+        return await db.query(query, data);
+      
+    } catch (error) {
+        
+      throw "error: No fue posible actualizar el usuario";
+    }
+  }
 }
 
 let usuarioDao = new UsuarioDao(); // Instancia de la clase UsuarioDao

@@ -44,17 +44,15 @@ router.post("/login", async function (req, res) {
       { expiresIn: 60 * 3 }
     );
 
-    res
-      .status(200)
-      .send({
-        success: true,
-        message: "Usuario Autenticado",
-        token: token,
-        admin: usuarioEncontrado.rol,
-        id: usuarioEncontrado.id,
-        nombre: usuarioEncontrado.usuario,
-      });
 
+    res.status(200).send({
+      success: true,
+      message: "Usuario Autenticado",
+      token: token,
+      admin: usuarioEncontrado.rol,
+      id: usuarioEncontrado.id,
+      nombre: usuarioEncontrado.usuario,
+    });
 
   } catch (error) {
     logger.error(`Error en login: ${error}`);
@@ -125,18 +123,29 @@ router.post("/eliminar", verifyToken, async function (req, res) {
   try {
     console.log(req.body.id);
     let result = await UsuarioDao.deleteUser(req.body.id);
-    
+
     res.status(200).send({ success: true, message: result });
   } catch (error) {
     res.status(404).send({ success: false, error: error });
   }
 });
 
-router.put("/actualizar/contrasena", verifyToken, async function (req, res) {
+router.put("/modificar", verifyToken, async function (req, res) {
   try {
-    let result = await UsuarioDao.actualizarUsuario(req.body.usuario);
+    const usuario = new Usuario(req.body);
+    await usuario.encryptPassword();
+    data = {
+      id: req.body.id,
+      usuario: req.body.usuario,
+      contrasena: usuario.contrasena,
+      nuevo_usuario: req.body.nuevo_usuario,
+    };
+
+    let result = await UsuarioDao.updateUserData(data);
+    
     res.status(200).send({ success: true, message: result });
   } catch (error) {
+    console.log(error);
     res.status(404).send({ success: false, error: error });
   }
 });
