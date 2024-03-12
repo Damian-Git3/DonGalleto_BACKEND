@@ -108,7 +108,15 @@ router.post("/editar", async function (req, res) {
   try {
     console.log(req.body);
 
-    let result = await UsuarioDao.updateUser(req.body.usuario, req.body.contrasena, req.body.rol, req.body.idUsuario, req.body.idUsuarioModificador)
+    let usuario = {
+      usuario: req.body.usuario,
+      contrasena: req.body.contrasena,
+      rol: req.body.rol,
+      id: req.body.idUsuario,
+      usuario_mod: req.body.idUsuarioModificador,
+    }
+
+    let result = await UsuarioDao.registrarUsuario(usuario);
 
     res
       .status(200)
