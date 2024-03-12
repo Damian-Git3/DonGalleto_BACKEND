@@ -9,7 +9,7 @@ class UsuarioDao {
             logger.debug(response);
             return response[0];
         } catch (error) {
-            throw new MySqlError('error: No se pudo validar el usuario');
+            throw new Error('error: No se pudo validar el usuario');
         }
     }
     
@@ -23,10 +23,16 @@ class UsuarioDao {
             const newUserId = rows[0][0].id; // Asume que el procedimiento almacenado devuelve el nuevo ID en la primera fila
             return { ...usuario, id: newUserId }; // Devuelve el objeto usuario con el nuevo ID
         } catch (error) {
-            if (error.code === 'ER_DUP_ENTRY') {
-                throw new MySqlError('error: El nombre de usuario ya existe');
+            console.log("Error SQL registrar: ", error);
+            console.log("Error SQL registrar: ", error.sqlMessage);
+            console.log("Error SQL codigo", error.code)
+            if (error.code === 'ER_SIGNAL_EXCEPTION')
+            {
+                return new Error("Usuario ya registrado")
+            }else{
+                return new Error("No fue posible realizar la insercion", error.message, error.code,);
             }
-            throw new MySqlError("error: No fue posible realizar la insercion");
+            
         }
     }
 
@@ -37,7 +43,7 @@ class UsuarioDao {
             const params = { idUsuario };
             return await db.query(query, params);
         } catch (error) {
-            throw new MySqlError('error: getUserById', error.message, error.code,);
+            throw new Error('error: getUserById', error.message, error.code,);
         }
     }
 
@@ -51,7 +57,7 @@ class UsuarioDao {
         }
         catch (error) {
             console.log(error);
-            throw new MySqlError('error: getUsers', error.message, error.code,);
+            throw new Error('error: getUsers', error.message, error.code,);
         }
     }
 
@@ -61,7 +67,7 @@ class UsuarioDao {
             const query = 'SELECT * FROM usuarios WHERE usuario = :usuario';
             return await db.query(query, usuario);
         } catch (error) {
-            throw new MySqlError('error: getUserByUsername', error.message, error.code,);
+            throw new Error('error: getUserByUsername', error.message, error.code,);
         }
     }
 
@@ -81,7 +87,7 @@ class UsuarioDao {
             const query = `SELECT * FROM UsuariosFull`
             return await db.query(query, {});
         } catch (error) {
-            throw new MySqlError('error: listarUsuarios', error.message, error.code,);
+            throw new Error('error: listarUsuarios', error.message, error.code,);
         }
     }
 
@@ -90,7 +96,7 @@ class UsuarioDao {
             const query = 'SELECT * FROM UsuariosActivos'
             return await db.query(query, {});
         } catch (error) {
-            throw new MySqlError('error: listarUsuariosActivos', error.message, error.code)
+            throw new Error('error: listarUsuariosActivos', error.message, error.code)
         }
     }
 }

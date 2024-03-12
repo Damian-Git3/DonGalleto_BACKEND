@@ -65,59 +65,57 @@ router.post("/login", async function (req, res) {
 
 router.post("/registro", async function (req, res) {
   try {
-    pwnedpasswords(req.body.contrasena).then(async (count) => {
-      if (count > 17000) {
-        res.status(400).send({
-          success: false,
-          message:
-            "Contraseña comprometida " +
-            count +
-            " veces. Por favor, elige una contraseña más segura.",
-        });
-      } else {
-        const usuario = new Usuario(req.body);
-        await usuario.encryptPassword();
+    const count = await pwnedpasswords(req.body.contrasena);
+    if (count > 17000) {
+      return res.status(400).send({
+        success: false,
+        message:
+          "Contraseña comprometida " +
+          count +
+          " veces. Por favor, elige una contraseña más segura.",
+      });
+    }
 
-        let result = await UsuarioDao.registrarUsuario(usuario);
-        //El token expira en 3 minutos, tiempo representado en segundos
+    const usuario = new Usuario(req.body);
+    await usuario.encryptPassword();
 
-        const token = jwt.sign({ id: result.id }, process.env.SECRET_KEY, {
-          expiresIn: 60 * 3,
-        });
-        res
-          .status(200)
-          .send({
-            success: true,
-            token: token,
-            admin: result.rol,
-            id: result.id,
-            nombre: result.usuario,
-          });
-      }
+    let result = await UsuarioDao.registrarUsuario(usuario);
+    //El token expira en 3 minutos, tiempo representado en segundos
+    console.log("Resultado: ", result);
+
+    if(result instanceof Error){
+      console.log("Fue un error")
+      return res.status(400).send({ success: false, message: result.message });
+    }
+    console.log("No fue un error")
+    const token = jwt.sign({ id: result.id }, process.env.SECRET_KEY, {
+      expiresIn: 60 * 3,
     });
+    return res
+      .status(200)
+      .send({
+        success: true,
+        token: token,
+        admin: result.rol,
+        id: result.id,
+        nombre: result.usuario,
+      });
   } catch (error) {
-    console.log(error);
-    res.status(404).send({ success: false, error });
+    // Aquí puedes personalizar el código de estado y el mensaje de error según sea necesario
+    return res.status(400).send({ success: false, error: error.message });
   }
 });
 
 router.post("/lista", verifyToken, async function (req, res) {
   try {
-    let result = await UsuarioDao.getUsers();
+    let result = await UsuarioDao.listarUsuarios();
     //transformar el nombre de los campos por seguridad
 
-    let data = result.map((usuario) => {
-      return {
-        id: usuario.id,
-        usuario: usuario.usuario,
-        estatus: usuario.estatus,
-        rol: usuario.rol,
-      };
-    });
+    console.log(result[0]);
 
     res
       .status(200)
-      .send({ success: true, message: "Lista concedida", data: data });
+      .send({ success: true, message: "Lista concedida", data: result[0] });
   } catch (error) {
     res.status(404).send({ success: false, error: error });
   }
