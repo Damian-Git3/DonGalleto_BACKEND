@@ -112,11 +112,16 @@ router.post("/editar", async function (req, res) {
       usuario: req.body.usuario,
       contrasena: req.body.contrasena,
       rol: req.body.rol,
-      id: req.body.idUsuario,
+      id: req.body.id_usuario,
       usuario_mod: req.body.idUsuarioModificador,
     }
 
     let result = await UsuarioDao.registrarUsuario(usuario);
+
+    if (result instanceof Error) {
+      console.log("Fue un error")
+      return res.status(400).send({ success: false, message: result.message });
+    }
 
     res
       .status(200)

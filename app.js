@@ -15,7 +15,7 @@ const csrf = require('csurf');
 
 const app = express();
 
-var csrfProtection = csrf({ cookie: true })
+let csrfProtection = csrf({ cookie: true })
 
 app.use(cookieParser());
 
