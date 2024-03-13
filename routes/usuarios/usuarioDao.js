@@ -4,7 +4,7 @@ const logger = require("../../utils/logger");
 class UsuarioDao {
   async validarUsuario(usuario) {
     try {
-      const query = `SELECT id,usuario, contrasena, estatus, rol FROM usuarios WHERE BINARY usuario = :usuario limit 1;`;
+      const query = `SELECT id,usuario, contrasena, rol, estatus FROM usuarios WHERE binary usuario = :usuario limit 1;`;
       let [response] = await db.query(query, usuario);
       logger.debug(response);
       return response[0];
@@ -16,9 +16,9 @@ class UsuarioDao {
   // Función para crear un nuevo usuario
   async registrarUsuario(usuario) {
     try {
-      usuario.usuario_mod = null;
+      
       const query =
-        "CALL guardar_usuario(:id, :usuario, :contrasena, :usuario_mod, :rol);";
+        "CALL guardar_usuario(:id, :usuario, :contrasena, null, :rol);";
       const [rows] = await db.query(query, usuario);
       const newUserId = rows[0][0].id; // Asume que el procedimiento almacenado devuelve el nuevo ID en la primera fila
       return { ...usuario, id: newUserId }; // Devuelve el objeto usuario con el nuevo ID
@@ -26,6 +26,7 @@ class UsuarioDao {
       if (error.code === "ER_DUP_ENTRY") {
         throw "error: El nombre de usuario ya existe";
       }
+      console.log(error);
       throw "error: No fue posible realizar la insercion";
     }
   }
@@ -81,13 +82,10 @@ class UsuarioDao {
 
   async updateUserData(data) {
     try {
-        
       const query =
         "UPDATE usuarios SET usuario = :nuevo_usuario, contrasena = :contrasena, usuario_mod = :id WHERE id = :id";
-        return await db.query(query, data);
-      
+      return await db.query(query, data);
     } catch (error) {
-        
       throw "error: No fue posible actualizar el usuario";
     }
   }

@@ -2,6 +2,8 @@ const express = require("express");
 const session = require("express-session");
 const router = express.Router();
 
+const bcrypt = require("bcryptjs");
+
 const logger = require("../../utils/logger");
 const UsuarioDao = require("../usuarios/usuarioDao");
 const Usuario = require("../usuarios/usuarioModelo");
@@ -41,9 +43,8 @@ router.post("/login", async function (req, res) {
     const token = jwt.sign(
       { id: usuarioEncontrado.id },
       process.env.SECRET_KEY,
-      { expiresIn: 60 * 3 }
+      { expiresIn: 60 * 60}
     );
-
 
     res.status(200).send({
       success: true,
@@ -53,7 +54,6 @@ router.post("/login", async function (req, res) {
       id: usuarioEncontrado.id,
       nombre: usuarioEncontrado.usuario,
     });
-
   } catch (error) {
     logger.error(`Error en login: ${error}`);
     console.log(error);
@@ -80,7 +80,7 @@ router.post("/registro", async function (req, res) {
         //El token expira en 3 minutos, tiempo representado en segundos
 
         const token = jwt.sign({ id: result.id }, process.env.SECRET_KEY, {
-          expiresIn: 60 * 3,
+          expiresIn: 60 * 60,
         });
         res.status(200).send({
           success: true,
@@ -96,6 +96,41 @@ router.post("/registro", async function (req, res) {
     res.status(404).send({ success: false, error });
   }
 });
+
+
+router.post("/editar", async function (req, res) {
+  try {
+    console.log(req.body);
+
+    let usuario = {
+      id: req.body.id_usuario,
+      usuario: req.body.usuario,
+      contrasena: req.body.contrasena,
+      rol: req.body.rol,
+      usuario_mod: req.body.idUsuarioModificador,
+    };
+
+    const salt = bcrypt.genSaltSync(10);
+    usuario.contrasena = await bcrypt.hash(usuario.contrasena, salt);
+
+    let result = await UsuarioDao.registrarUsuario(usuario);
+
+    if (result instanceof Error) {
+      console.log("Fue un error")
+      return res.status(400).send({ success: false, message: result.message });
+    }
+
+    res
+      .status(200)
+      .send({
+        success: true,
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(404).send({ success: false, error });
+  }
+});
+
 
 router.post("/lista", verifyToken, async function (req, res) {
   try {
@@ -121,7 +156,6 @@ router.post("/lista", verifyToken, async function (req, res) {
 
 router.post("/eliminar", verifyToken, async function (req, res) {
   try {
-    console.log(req.body.id);
     let result = await UsuarioDao.deleteUser(req.body.id);
 
     res.status(200).send({ success: true, message: result });
@@ -142,7 +176,7 @@ router.put("/modificar", verifyToken, async function (req, res) {
     };
 
     let result = await UsuarioDao.updateUserData(data);
-    
+
     res.status(200).send({ success: true, message: result });
   } catch (error) {
     console.log(error);
