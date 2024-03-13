@@ -1,6 +1,7 @@
 const express = require("express");
 const session = require("express-session");
 const router = express.Router();
+const bcrypt = require("bcryptjs");
 
 const logger = require("../../utils/logger");
 const UsuarioDao = require("../usuarios/usuarioDao");
@@ -109,12 +110,15 @@ router.post("/editar", async function (req, res) {
     console.log(req.body);
 
     let usuario = {
+      id: req.body.id_usuario,
       usuario: req.body.usuario,
       contrasena: req.body.contrasena,
       rol: req.body.rol,
-      id: req.body.id_usuario,
       usuario_mod: req.body.idUsuarioModificador,
-    }
+    };
+
+    const salt = bcrypt.genSaltSync(10);
+    usuario.contrasena = await bcrypt.hash(usuario.contrasena, salt);
 
     let result = await UsuarioDao.registrarUsuario(usuario);
 

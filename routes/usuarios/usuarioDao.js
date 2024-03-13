@@ -17,7 +17,6 @@ class UsuarioDao {
     async registrarUsuario(usuario) {
         try {
 
-            usuario.usuario_mod = null;
             const query = 'CALL guardar_usuario(:id, :usuario, :contrasena, :usuario_mod, :rol);';
             const [rows] = await db.query(query, usuario);
             const newUserId = rows[0][0].id; // Asume que el procedimiento almacenado devuelve el nuevo ID en la primera fila
